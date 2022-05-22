@@ -10,7 +10,7 @@ Random::Random()
 
 int Random::integer(int min, int max)
 {
-    return rand() % (max - min + 1) - min;
+    return rand() % (max - min + 1) + min;
 }
 
 std::vector<int> Random::integers(unsigned int total, int min, int max)

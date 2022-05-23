@@ -4,7 +4,7 @@
 
 Random::Random()
 {
-    // seed rand() so values can be different everytime
+    // seed rand() so values can be different every time
     srand(time(NULL));
 }
 

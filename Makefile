@@ -2,7 +2,7 @@
 CC = g++
 
 # Wall = enable compiler warnings
-CFLAGS = -Wall -std=c++11 -ggdb
+CFLAGS = -Wall -std=c++11
 LIBS = -pthread
 
 SUM_INCLUDE = sum.cpp Lock.cpp Random.cpp

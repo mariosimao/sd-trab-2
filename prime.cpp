@@ -4,6 +4,7 @@
 #include <thread>
 #include <semaphore.h>
 #include <vector>
+#include <chrono>
 #include "Random.h"
 
 bool isPrime(int n)
@@ -25,8 +26,7 @@ void producer(
     sem_t &bufferFree,
     sem_t &isEmpty,
     sem_t &isNotEmpty,
-    sem_t &counterFree,
-    int buffer[],
+    std::vector<int> &buffer,
     int bufferSize,
     Random &random
 ) {
@@ -53,9 +53,10 @@ void consumer(
     sem_t &isEmpty,
     sem_t &isNotEmpty,
     sem_t &counterFree,
-    int buffer[],
+    std::vector<int> &buffer,
     int bufferSize,
-    int &counter
+    int &counter,
+    std::chrono::steady_clock::time_point start
 ) {
     while (1) {
         int number;
@@ -71,27 +72,27 @@ void consumer(
             }
         }
 
-        counter++;
         sem_post(&bufferFree);
         sem_post(&isEmpty);
 
-        // bool prime = isPrime(number);
-        // sem_wait(&counterFree);
+        bool prime = isPrime(number);
+
+        sem_wait(&counterFree);
+        counter++;
         if (counter > 100000) {
+            std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+            int duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+            std::cout << "Time: " << duration << " ms" << std::endl;
             exit(EXIT_SUCCESS);
         }
-        if (counter % 10000 == 0) {
-            // std::cout << counter << std::endl;
-        }
-        // sem_post(&counterFree);
 
-        // char result[100];
-        // if (prime) {
-        //     sprintf(result, "%d\t\tprime\n", number);
-        // } else {
-        //     sprintf(result, "%d\t\tnot prime\n", number);
-        // }
-        // std::cout << result;
+        if (prime) {
+            // std::cout << number << "\t\tprime" << std::endl;
+        } else {
+            // std::cout << number << "\t\tnot prime" << std::endl;
+        }
+        sem_post(&counterFree);
     }
 }
 
@@ -100,29 +101,32 @@ int main(int argc, char const *argv[])
     unsigned int producerTotalThreads, consumerTotalThreads;
     std::vector<std::thread> producerThreads, consumerThreads;
     sem_t bufferFree, isEmpty, isNotEmpty, counterFree;
+    std::chrono::steady_clock::time_point start;
     int counter = 0;
 
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << "<buffer-size> <producer-threads> <consumer-threads>" << std::endl;
+    if (argc < 4) {
+        std::cerr << "Usage: " << argv[0] << "<buffer-size> <producer-threads> <consumer-threads> [no-output]" << std::endl;
         exit(EXIT_FAILURE);
     }
 
     Random random;
 
-    producerTotalThreads = atoi(argv[1]);
-    consumerTotalThreads = atoi(argv[2]);
-    const int bufferSize = 4;
+    int bufferSize = atoi(argv[1]);
+    producerTotalThreads = atoi(argv[2]);
+    consumerTotalThreads = atoi(argv[3]);
 
-    // std::vector<int> buffer;
-    // for (int i = 0; i < bufferSize; i++) {
-    //     buffer.push_back(0);
-    // }
-    int buffer[bufferSize] = {0}; // Initially populate withe zeros. Zero means that buffer space is empty.
+    // Populate buffer with empty values (in this case zeros)
+    std::vector<int> buffer;
+    for (int i = 0; i < bufferSize; i++) {
+        buffer.push_back(0);
+    }
 
-    sem_init(&bufferFree, false, 1);       // If buffer is being used
+    sem_init(&bufferFree, false, 1);       // If buffer is not being used
     sem_init(&isEmpty, false, bufferSize); // Empty buffer space
     sem_init(&isNotEmpty, false, 0);       // Occupied buffer space
-    sem_init(&counterFree, false, 1);      // If counter is being used
+    sem_init(&counterFree, false, 1);      // If counter is not being used
+
+    start = std::chrono::steady_clock::now();
 
     for (unsigned int i = 0; i < producerTotalThreads; i++) {
         producerThreads.push_back(std::thread(
@@ -130,7 +134,6 @@ int main(int argc, char const *argv[])
             std::ref(bufferFree),
             std::ref(isEmpty),
             std::ref(isNotEmpty),
-            std::ref(counterFree),
             std::ref(buffer),
             bufferSize,
             std::ref(random)
@@ -146,7 +149,8 @@ int main(int argc, char const *argv[])
             std::ref(counterFree),
             std::ref(buffer),
             bufferSize,
-            std::ref(counter)
+            std::ref(counter),
+            start
         ));
     }
 

@@ -78,8 +78,9 @@ int main(int argc, char const *argv[])
     end = std::chrono::steady_clock::now();
     duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-    std::cout << "Sum: " << sum << std::endl;
-    std::cout << "Time: " << duration << " ms" << std::endl;
+    // std::cout << "Sum: " << sum << std::endl;
+    // std::cout << "Time: " << duration << " ms" << std::endl;
+    std::cout << duration;
 
     if (argc > 3 && std::string(argv[3]) == "compare") {
         std::chrono::steady_clock::time_point singleThreadStart, singleThreadEnd;

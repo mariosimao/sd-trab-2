@@ -13,7 +13,7 @@ for n in 1 2 4 8 16 32; do
 
     totalDuration=0
     for i in {1..10}; do
-      duration=$(./prime $n $np $nc)
+      duration=$(./prime $n $np $nc no-output)
       totalDuration=$(($totalDuration+$duration))
     done
 
@@ -27,7 +27,7 @@ for n in 1 2 4 8 16 32; do
 
     totalDuration=0
     for i in {1..10}; do
-      duration=$(./prime $n $np $nc)
+      duration=$(./prime $n $np $nc no-output)
       totalDuration=$(($totalDuration+$duration))
     done
 

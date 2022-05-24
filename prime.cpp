@@ -56,7 +56,8 @@ void consumer(
     std::vector<int> &buffer,
     int bufferSize,
     int &counter,
-    std::chrono::steady_clock::time_point start
+    std::chrono::steady_clock::time_point start,
+    bool verbose
 ) {
     while (1) {
         int number;
@@ -83,14 +84,16 @@ void consumer(
             std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
             int duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-            std::cout << "Time: " << duration << " ms" << std::endl;
+            std::cout << duration;
             exit(EXIT_SUCCESS);
         }
 
-        if (prime) {
-            // std::cout << number << "\t\tprime" << std::endl;
-        } else {
-            // std::cout << number << "\t\tnot prime" << std::endl;
+        if (verbose) {
+            if (prime) {
+                std::cout << number << "\t\tprime" << std::endl;
+            } else {
+                std::cout << number << "\t\tnot prime" << std::endl;
+            }
         }
         sem_post(&counterFree);
     }
@@ -103,10 +106,15 @@ int main(int argc, char const *argv[])
     sem_t bufferFree, isEmpty, isNotEmpty, counterFree;
     std::chrono::steady_clock::time_point start;
     int counter = 0;
+    bool verbose = true;
 
     if (argc < 4) {
-        std::cerr << "Usage: " << argv[0] << "<buffer-size> <producer-threads> <consumer-threads> [no-output]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <buffer-size> <producer-threads> <consumer-threads> [no-output]" << std::endl;
         exit(EXIT_FAILURE);
+    }
+
+    if (argc >= 5 && std::string(argv[4]) == "no-output") {
+        verbose = false;
     }
 
     Random random;
@@ -150,7 +158,8 @@ int main(int argc, char const *argv[])
             std::ref(buffer),
             bufferSize,
             std::ref(counter),
-            start
+            start,
+            verbose
         ));
     }
 

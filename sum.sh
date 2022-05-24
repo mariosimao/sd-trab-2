@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Script responsible for generating execution time statistics for the "sum" program
+
 exportFile="sum.csv"
 
 echo "n,k,time" >> $exportFile
